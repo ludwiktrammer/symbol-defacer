@@ -67,7 +67,7 @@ public class Converter {
 			 * "sup1", "sup2" and "sup3" HTML entities.
 			 * This is a dirty workaround that reverses the corruption.
 			 */
-			String outString = doc.html().replaceAll("\u2283([1-3]);", "&sup$1;");
+			String outString = doc.html().replaceAll("(?:\u2283|&#8835;)([1-3]);", "&sup$1;");
 			
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), doc.outputSettings().charset()));
 			bw.write(outString);
