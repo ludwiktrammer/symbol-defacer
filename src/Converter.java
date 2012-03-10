@@ -23,6 +23,9 @@ THE SOFTWARE.
 */
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -63,11 +66,13 @@ public class Converter {
 					.attr("content", "text/html; charset=UTF-8");
 			}
 			
-			/* There is a bug in jsoup resulting in corruption of
-			 * "sup1", "sup2" and "sup3" HTML entities.
+			/** There is a bug in jsoup resulting in corruption of
+			 * HTML entities ending with numbers.
 			 * This is a dirty workaround that reverses the corruption.
 			 */
-			String outString = doc.html().replaceAll("(?:\u2283|&#8835;)([1-3]);", "&sup$1;");
+			String outString = doc.html()
+					.replaceAll("(?:\u2283|&#8835;)([1-3]);", "&sup$1;")
+					.replaceAll("&amp;(frac|blk|emsp|there)([1-9]{1,2});", "&$1$2;");
 			
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), doc.outputSettings().charset()));
 			bw.write(outString);
@@ -124,6 +129,7 @@ public class Converter {
 	 * @param text String to be converted. Must be a <font face="Symbol"> encoded text.
 	 */
 	private static String symbolFontToUnicode(String text) {
+		text = correctHtmlEntitiesBug(text);
 		StringBuilder sb = new StringBuilder(text.length());
 		for(char c : text.toCharArray()) {
 			if(CharacterMap.map.containsKey(c)) {
@@ -135,6 +141,31 @@ public class Converter {
 		return sb.toString();
 	}
 	
+	/*
+	 * Patterns for correctHtmlEntitiesBug();
+	 */
+	private static final Map<Pattern, Character> entities = new HashMap<Pattern, Character>();
+	static {
+		entities.put(Pattern.compile("\u22831;"), '\u00B9');
+		entities.put(Pattern.compile("\u22832;"), '\u00B2');
+		entities.put(Pattern.compile("\u22833;"), '\u00B3');
+		entities.put(Pattern.compile("&frac12;"), '\u00BD');
+		entities.put(Pattern.compile("&frac13;"), '\u2153');
+		entities.put(Pattern.compile("&frac14;"), '\u00BC');
+	}
+	
+	private static String correctHtmlEntitiesBug(String text) {
+		/** There is a bug in jsoup resulting in corruption of
+		 * HTML entities ending with numbers.
+		 * This is a dirty workaround that reverses the corruption
+		 * for chars meaningful in the context of font face Symbol encoding.
+		 */
+		for(Pattern p : entities.keySet()) {
+			text = p.matcher(text).replaceAll(entities.get(p).toString());
+		}
 
+		return text;
+	}
+	
 
 }
