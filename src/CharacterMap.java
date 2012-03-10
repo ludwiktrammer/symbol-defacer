@@ -189,7 +189,7 @@ public class CharacterMap {
 		{170, 9824}
 	};
 	
-	/* I wont this information inside a Map object! */
+	/* I want this information inside a Map object! */
 	public static final Map<Character, Character> map;
 	
 	static {
