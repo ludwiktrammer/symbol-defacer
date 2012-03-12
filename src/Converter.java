@@ -52,7 +52,7 @@ public class Converter {
 			/* run fintAndConvertAllTextNodes() for every
 			 * <font face="Symbol"> on a page
 			 */
-			Elements fontFaces = doc.select("font[face=Symbol]");
+			Elements fontFaces = doc.select("font[face=Symbol], *[style~=font-family:\\sSymbol]");
 			for(Element fontFace : fontFaces) {
 				findAndConvertAllTextNodes(fontFace);
 				fontFace.unwrap();
@@ -66,7 +66,7 @@ public class Converter {
 					.attr("content", "text/html; charset=UTF-8");
 			}
 			
-			/** There is a bug in jsoup resulting in corruption of
+			/* There is a bug in jsoup resulting in corruption of
 			 * HTML entities ending with numbers.
 			 * This is a dirty workaround that reverses the corruption.
 			 */
@@ -109,8 +109,8 @@ public class Converter {
 			String newText = symbolFontToUnicode(((TextNode)n).attr("text"));
 			((TextNode)n).attr("text",newText);
 		} else if(!n.childNodes().isEmpty()) {
-			if(n.nodeName()=="font" && n.hasAttr("face")) {
-				/* Font face changed.
+			if((n.nodeName()=="font" && n.hasAttr("face")) || n.attr("style").toLowerCase().startsWith("font-family:")) {
+				/* Font changed.
 				 * This node doesn't concern us anymore.
 				 */
 				return;
